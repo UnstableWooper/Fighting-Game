@@ -18,6 +18,10 @@ public class HealthBar : MonoBehaviour
     
     public GameObject player1;
     public GameObject player2;
+
+    public SpriteRenderer player1Color;
+    public SpriteRenderer player2Color;
+
     public PlayerHealth health1;
     public PlayerHealth health2;
     public PlayerAttack attack1;
@@ -35,6 +39,11 @@ public class HealthBar : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(attack1.stunned) player1Color.color = Color.yellow;
+        else player1Color.color = Color.blue;
+        if(attack2.stunned) player2Color.color = Color.yellow;
+        else player2Color.color = Color.blue;
+            
         if (health1.health <= 0)
         {
             player1Dead = true;

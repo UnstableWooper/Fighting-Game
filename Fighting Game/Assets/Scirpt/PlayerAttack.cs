@@ -6,27 +6,39 @@ using UnityEngine;
 public class PlayerAttack : MonoBehaviour
 {
     public float direction;
-    public bool facingRight;
+    private bool _facingRight;
     
     public GameObject slashGameObject;
-    public GameObject shieldGameobject;
+    public GameObject shieldGameObject;
+    
+    public GameObject playerEnemy;
     
     public bool usingShield;
     public float shieldBar;
     public float shieldBarDeplenish;
     public float shieldBarPer;
-    public float shieldBarMax; 
+    public float shieldBarMax;
+
+    public bool stunned;
     
     public float slashLength;
     private float _slashCooldown;
+
+    public Rigidbody2D rb;
+
+    private PlayerAttack _playerEnemyAttackScript;
+    private PlayerHealth _playerEnemyHealthScript;
+    
+    public LayerMask shieldLayer;
     
     public KeyCode slash;
     public KeyCode shield;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        slashGameObject.SetActive(false);
-        shieldGameobject.SetActive(false);
+        _playerEnemyAttackScript = playerEnemy.GetComponent<PlayerAttack>();
+        slashGameObject.transform.position = new Vector2(112, 112);
+        shieldGameObject.transform.position = new Vector2(111,111);
         shieldBarMax = 40f;
         shieldBarDeplenish = 0.25f;
         shieldBarPer = 0.005f;
@@ -36,20 +48,17 @@ public class PlayerAttack : MonoBehaviour
     // Update is called once per frame
     private void FixedUpdate()
     {
-        
-        
-        
-        facingRight = GetComponent<PlayerMovement>().facingRight;
-        if (facingRight) 
+        _facingRight = GetComponent<PlayerMovement>().facingRight;
+        if (_facingRight) 
         { 
             direction = 0.5f;
         }else 
-        if (!facingRight) 
+        if (!_facingRight) 
         { 
             direction = -0.5f;
         }
         
-        if (shieldBar >= 0)
+        if (shieldBar >= 0 && !stunned)
         { 
             if(Input.GetKey(shield)) usingShield = true; 
             else usingShield = false; 
@@ -59,20 +68,19 @@ public class PlayerAttack : MonoBehaviour
         if (usingShield)
         {
             shieldBar -= shieldBarDeplenish; 
-            shieldGameobject.SetActive(true);
-            shieldGameobject.transform.position = new Vector2(transform.position.x + direction, transform.position.y);
+            shieldGameObject.transform.position = new Vector2(transform.position.x + direction, transform.position.y);
         }
         else
         {
-            shieldGameobject.SetActive(false);
+            shieldGameObject.transform.position = new Vector2(111,111);
             StartCoroutine(ShieldRegen());
         }
 
         
         if (Input.GetKeyDown(slash))
         {
-            if (_slashCooldown <= 0)
-            {            
+            if (_slashCooldown <= 0 && !stunned)
+            {
                 slashGameObject.transform.position = new Vector2(transform.position.x + direction, transform.position.y);
                 StartCoroutine(Slash());
                 _slashCooldown = 2;
@@ -83,10 +91,9 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator Slash()
     {
-
-        slashGameObject.SetActive(true);
+        slashGameObject.transform.position = new Vector2(transform.position.x + direction, transform.position.y);
         yield return new WaitForSeconds(slashLength);
-        slashGameObject.SetActive(false);
+        slashGameObject.transform.position = new Vector2(111, 111);
     }
 
     IEnumerator ShieldRegen()
@@ -101,6 +108,25 @@ public class PlayerAttack : MonoBehaviour
         {
             shieldBar = shieldBarMax;
         }
-        yield break;
+    }
+
+    public void Blocked()
+    {
+        shieldBar -= shieldBarDeplenish * 40f;
+        if ( shieldBar < 0)
+        {
+            shieldBar = 0;
+            IsStunned();
+        }
+    }
+
+    private void IsStunned()
+    {
+        if (shieldBar >= shieldBarMax)
+        {
+          stunned = false;
+        }else{
+            stunned = true;
+        }
     }
 }

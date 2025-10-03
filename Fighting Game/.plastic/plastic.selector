@@ -1,0 +1,4 @@
+repository "Fighting Game/Fighting Game@3574318463104@cloud"
+  path "/"
+    br "/main"
+    co "/main"
